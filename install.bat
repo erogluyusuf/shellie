@@ -78,6 +78,5 @@ if not exist requirements.txt (
 echo.
 echo ---------------------------------------------------
 echo [Shellie] KURULUM TAMAMLANDI!
-echo Artik 'py src/main.py' ile baslatabilirsin.
-echo.
+python src/main.py
 pause
