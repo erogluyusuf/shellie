@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (QMainWindow, QLabel, QApplication, QGraphicsDropSha
 from PyQt6.QtCore import Qt, QPoint, QTimer, QSize, pyqtSignal
 from PyQt6.QtGui import QMovie, QFont, QColor, QCursor
 from functools import partial
+from PyQt6.QtCore import QPropertyAnimation
 # --- HARİCİ DOSYA KONTROLÜ ---
 try:
     from engine import ShellieEngine
@@ -17,16 +18,21 @@ except ImportError:
 class BubbleWindow(QWidget):
     on_close = pyqtSignal()
     action_triggered = pyqtSignal(str) 
-
+    
     def __init__(self):
         super().__init__()
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint |
+            Qt.WindowType.WindowStaysOnTopHint|
             Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
+        self.auto_close_timer = QTimer(self)
+        self.auto_close_timer.setSingleShot(True)
+        self.auto_close_timer.timeout.connect(self.auto_close)
+        self.fade_anim = QPropertyAnimation(self, b"windowOpacity")
+        self.fade_anim.setDuration(200)  # 200 ms
+        self.fade_anim.finished.connect(self._final_close)
         # [ÖNEMLİ] Pencerenin odaklanabilir olması lazım ki dışarı tıklandığını anlasın.
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         
@@ -109,21 +115,37 @@ class BubbleWindow(QWidget):
             self.content_layout.addWidget(btn)
 
         self.adjustSize()
-        self.show()
-        self.raise_()
-        self.activateWindow() # Pencereyi öne al ve odakla
+
 
     def clear_layout(self, layout):
         while layout.count():
             child = layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
+    def auto_close(self):
+        if not self.isVisible():
+            return
 
-    # [ÖNEMLİ] Dışarı tıklanınca çalışacak fonksiyon
-    def focusOutEvent(self, event):
+        self.fade_anim.stop()
+        self.fade_anim.setStartValue(1.0)
+        self.fade_anim.setEndValue(0.0)
+        self.fade_anim.start()
+   
+    def _final_close(self):
         self.hide()
+        self.setWindowOpacity(1.0)
         self.on_close.emit()
-        super().focusOutEvent(event)
+
+
+
+    def enterEvent(self, event):
+        self.auto_close_timer.stop()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.auto_close_timer.start(4000)
+        super().leaveEvent(event)
+
 
 # ---------------------------------------------------------
 # ANA TAVŞAN ARAYÜZÜ
@@ -131,7 +153,7 @@ class BubbleWindow(QWidget):
 class ShellieUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        
+
         self.engine = None
         if ShellieEngine:
             self.engine = ShellieEngine()
@@ -184,7 +206,7 @@ class ShellieUI(QMainWindow):
         self.bubble.action_triggered.connect(self.handle_bubble_action)
 
         self.update_gif()
-
+    
     def resume_walking(self):
         if self.is_stopped:
             self.is_stopped = False
@@ -247,33 +269,43 @@ class ShellieUI(QMainWindow):
                 self.show_bubble({"message": "Motor Bağlanamadı"})
 
     def handle_bubble_action(self, command_id):
-        if self.engine:
-            response = self.engine.execute_command(command_id)
-            if response is None:
+            # Kapat butonu basıldıysa direkt menüyü kapat ve yürüt
+            if command_id == "cmd_close_menu":
                 self.bubble.hide()
                 self.resume_walking()
-            else:
-                self.show_bubble(response)
+                return
+
+            if self.engine:
+                response = self.engine.execute_command(command_id)
+                if response is None:
+                    self.bubble.hide()
+                    self.resume_walking()
+                else:
+                    # Yeni bir state geldiyse (örn: "Başlatıldı" mesajı) onu göster
+                    self.show_bubble(response)
 
     def show_bubble(self, data):
         self.bubble.update_content(data)
-        
+
         geo = self.geometry()
         bubble_geo = self.bubble.geometry()
         bubble_x = geo.x() + (geo.width() // 2) - (bubble_geo.width() // 2)
         bubble_y = geo.y() - bubble_geo.height() - 5
-        
+
         screen_geo = self.screen().availableGeometry()
-        if bubble_x < 0: bubble_x = 10
+        if bubble_x < 0:
+            bubble_x = 10
         if bubble_x + bubble_geo.width() > screen_geo.width():
             bubble_x = screen_geo.width() - bubble_geo.width() - 10
-            
+
         self.bubble.move(bubble_x, bubble_y)
-        # [ÖNEMLİ] Balonu gösterdikten sonra odağı zorla ona veriyoruz
+
         self.bubble.show()
         self.bubble.raise_()
         self.bubble.activateWindow()
         self.bubble.setFocus()
+        self.bubble.auto_close_timer.start(4000)
+
 
     def mouseMoveEvent(self, event):
         if self.is_stopped: return 

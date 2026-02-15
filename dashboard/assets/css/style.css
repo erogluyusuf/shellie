@@ -1,0 +1,148 @@
+/* SIFIRLAMA ve KUTU MODELİ */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000000 !important;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Sayfa kaymasın */
+    color: #e0e0e0;
+}
+
+/* ANA DÜZENLEYİCİ (Grid) */
+.app-container {
+    display: grid;
+    /* Sol sütun 80px, Sağ sütun kalan boşluk */
+    grid-template-columns: 80px 1fr;
+    
+    /* İki ada arasındaki boşluk */
+    gap: 25px; 
+    
+    /* Ekranın 4 bir yanından boşluk (Üst, Alt, Sağ, Sol) */
+    padding: 25px;
+    
+    /* Tam ekran yüksekliği */
+    height: 100%;
+    width: 100%;
+}
+
+/* YÜZEN ADA PANELİ (Hem Aside hem Main buna sahip) */
+.aurora-panel {
+    /* Grid hücresinin tamamını kapla */
+    height: 100%; 
+    width: 100%;
+    
+    /* Görsel Ayarlar */
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
+        radial-gradient(110% 146% at 86% -17%, rgba(22, 14, 113, 1) 0%, rgba(19, 13, 92, 0.26) 55%, rgba(90, 35, 248, 0) 90%),
+        linear-gradient(44deg, rgba(37, 169, 249, 1) 2%, rgba(106, 103, 227, 0) 87%),
+        radial-gradient(102% 103% at 21% 24%, rgba(121, 54, 174, 1) 0%, rgba(121, 54, 174, 0) 100%),
+        radial-gradient(94.51% 124.88% at 96% 94.43%, rgba(65, 244, 255, 0.5) 0%, rgba(131, 218, 255, 0.4) 32%, rgba(99, 175, 240, 0.2) 64%, rgba(43, 90, 211, 0) 100%),
+        linear-gradient(313.04deg, rgba(52, 29, 101, 1) 1%, rgba(96, 74, 234, 1) 100%);
+    background-blend-mode: overlay, normal, normal, normal, normal, normal;
+    background-size: 200% 200%;
+    animation: cosmicMove 20s ease infinite alternate;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+@keyframes cosmicMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 50% 100%; }
+}
+
+/* İÇERİK KAYDIRMA ALANI (Sadece Sağ Panel İçin) */
+.scroll-container {
+    height: 100%;
+    overflow-y: auto; /* Scroll açık */
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    padding-right: 5px;
+    padding-bottom: 30px;
+}
+
+/* Scrollbar Tasarımı */
+.scroll-container::-webkit-scrollbar { width: 6px; }
+.scroll-container::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+.scroll-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+.scroll-container::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+/* Sticky Header */
+.glass-header {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    z-index: 10;
+}
+
+/* İkon ve Başlık Stilleri */
+.section-title {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-left: 3px solid #0dcaf0;
+    padding-left: 10px;
+}
+
+/* --- SOL MENÜ İKONLARI (REVİZE 2) --- */
+.nav-link {
+    color: rgba(255, 255, 255, 0.4); /* Pasif Rengi */
+    font-size: 22px; /* İkon boyutu: İdeal okunaklılık */
+    
+    /* KUTU BOYUTU (Sidebar 80px ise, 50-60px arası buton iyidir) */
+    width: 54px;     
+    height: 54px;
+    
+    /* Ortala */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Efektler */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Yaylanma efekti */
+    border-radius: 16px; /* Daha yumuşak kare */
+    margin: 0; /* Bootstrap marginini sıfırla */
+}
+
+/* Hover (Üzerine gelince) */
+.nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px); /* Hafif yukarı kalksın */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Aktif (Seçili) */
+.nav-link.active {
+    color: #0dcaf0; /* Neon Mavi */
+    background: rgba(13, 202, 240, 0.15); /* Hafif mavi zemin */
+    box-shadow: 0 0 20px rgba(13, 202, 240, 0.25); /* Glow (Parlama) */
+    transform: scale(1.05); /* Aktif olan bir tık büyük dursun */
+}
+
+/* Çıkış butonu için özel hover */
+.nav-link.text-danger:hover {
+    background: rgba(220, 53, 69, 0.2);
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+}
+.glass-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.6) 0%, rgba(20, 20, 50, 0.4) 100%);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 10px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+.glass-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.1); }
